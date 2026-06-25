@@ -2,25 +2,82 @@
 #include<allegro5/allegro.h>
 #include<allegro5/allegro_primitives.h>
 
+//eje y
+#define N 15
+//eje x
+#define M 60
+//tamaño de cuadriculas
+#define enty 20
+
+typedef struct 
+{
+    bool A;
+    bool S;
+    bool W;
+    bool D;
+}input_manager;
+
+int i,j,k;
+
+int mapas();
+
 int main()
 {
-    float a1,b1,c1,d1,a2,b2,c2,d2;
+    input_manager teclado;
+    teclado.W=false;
+    teclado.S=false;
+    teclado.A=false;
+    teclado.D=false;
+    int x1=7,x2=2,y1=8,y2=2;
+    char pos[N][M],aux;
+    int map[N][M];
 
     al_init();
     al_install_keyboard();
     al_init_primitives_addon();
 
-    ALLEGRO_DISPLAY *display=al_create_display(1000,1000);
+    ALLEGRO_DISPLAY *display=al_create_display(M*enty,N*enty);
     ALLEGRO_EVENT_QUEUE *queue=al_create_event_queue();
+    ALLEGRO_TIMER *timer = al_create_timer(1.0 / 5); 
 
-    al_register_event_source(queue,al_get_keyboard_event_source());
+    al_register_event_source(queue, al_get_display_event_source(display));
+    al_register_event_source(queue, al_get_keyboard_event_source());
+    al_register_event_source(queue, al_get_timer_event_source(timer));
 
-    float x1=700,x2=750,y1=400,y2=450,a=1;
-    float x3=0,x4=1000,y3=200,y4=250;
-    float x5=0,x6=1000,y5=500,y6=550;
-    float x7=0,x8=50,y7=200,y8=550;
-    float x9=950,x10=1000,y9=200,y10=550;
-    float pilar1=600,pilar2=650,pilar3=300,pilar4=500;
+    FILE *fan;
+    fan=fopen("assets/mapas/mapa0.txt","r");
+
+    for(i=0;i<N;i++)
+    {
+        for(j=0;j<M;j++)
+        {
+            fscanf(fan,"%c",&pos[i][j]);
+        }
+        fscanf(fan,"%c",&aux);
+    }
+
+    for(i=0;i<N;i++)
+    {
+        for(j=0;j<M;j++)
+        {
+            if(pos[i][j]=='c' || pos[i][j]=='p' || pos[i][j]=='o')
+            {
+                map[i][j]=1;
+            }
+            else if(pos[i][j]=='a' || pos[i][j]=='b')
+            {
+                map[i][j]=0;
+            }
+            else
+            {
+                map[i][j]=-1;
+            }
+        }
+    }
+
+    bool a=true;
+
+    al_start_timer(timer);
 
     while(a)
     {
@@ -29,48 +86,106 @@ int main()
 
         if(ev.type==ALLEGRO_EVENT_KEY_DOWN)
         {
+            y2=y1;
+            x2=x1;
             switch(ev.keyboard.keycode)
             {
                 case ALLEGRO_KEY_UP:
-                    y1-=50; y2-=50;
-                    if(y1==y3 || y2==y4 || y1==y5 || y2==y6 || y1==y7 || y2==y8 || (y1==pilar3 && (x1>=pilar1 && x2<=pilar2)) || (y2==pilar4 && (x1>=pilar1 && x2<=pilar2)))
-                    {
-                        y1+=50; y2+=50;
-                    }
+                        teclado.W=true;
                     break;
                 case ALLEGRO_KEY_DOWN:
-                    y1+=50; y2+=50;
-                    if(y1==y3 || y2==y4 || y1==y5 || y2==y6 || y1==y7 || y2==y8 || (y1==pilar3 && (x1>=pilar1 && x2<=pilar2)) || (y2==pilar4 && (x1>=pilar1 && x2<=pilar2)))
-                    {
-                        y1-=50; y2-=50;
-                    }
+                        teclado.S=true;
                     break;
                 case ALLEGRO_KEY_LEFT:
-                    x1-=50; x2-=50;
-                    if(x1==x3 || x2==x4 || x1==x5 || x2==x6 || x1==x7 || x2==x8 || (x1==pilar1 && (y1>=pilar3 && y2<=pilar4)) || (x2==pilar2 && (y1>=pilar3 && y2<=pilar4)))
-                    {
-                        x1+=50; x2+=50;
-                    }
+                        teclado.A=true;
                     break;
                 case ALLEGRO_KEY_RIGHT:
-                    x1+=50; x2+=50;
-                    if(x1==x3 || x2==x4 || x1==x5 || x2==x6 || x1==x7 || x2==x8 || (x1==pilar1 && (y1>=pilar3 && y2<=pilar4)) || (x2==pilar2 && (y1>=pilar3 && y2<=pilar4)))
-                    {
-                        x1-=50; x2-=50;
-                    }
+                        teclado.D=true;
                     break;
                 case ALLEGRO_KEY_ESCAPE:
-                    a=0;
+                        a=false;
                     break;
             }
         }
-        al_clear_to_color(al_map_rgb(0,0,0));
-        al_draw_rectangle(x1,y1,x2,y2, al_map_rgb(0,150,255),1);
-        al_draw_rectangle(x3,y3,x4,y4, al_map_rgb(100,23,255),3);
-        al_draw_rectangle(x5,y5,x6,y6, al_map_rgb(100,23,255),3);
-        al_draw_rectangle(x7,y7,x8,y8, al_map_rgb(100,23,255),3);
-        al_draw_rectangle(x9,y9,x10,y10, al_map_rgb(100,23,255),3);
-        al_draw_rectangle(pilar1,pilar3,pilar2,pilar4, al_map_rgb(255,50,55),3);
+        else if(ev.type==ALLEGRO_EVENT_KEY_UP)
+        {
+            switch(ev.keyboard.keycode)
+            {
+                case ALLEGRO_KEY_UP:
+                        teclado.W=false;
+                    break;
+                case ALLEGRO_KEY_DOWN:
+                        teclado.S=false;
+                    break;
+                case ALLEGRO_KEY_LEFT:
+                        teclado.A=false;
+                    break;
+                case ALLEGRO_KEY_RIGHT:
+                        teclado.D=false;
+                    break;
+                case ALLEGRO_KEY_ESCAPE:
+                        a=false;
+                    break;
+            }
+        }
+        else if(ev.type == ALLEGRO_EVENT_TIMER)
+        {
+            if(teclado.W && map[y2-1][x2]!=0) 
+            {
+                y2--;
+            }
+            if(teclado.S && map[y2+1][x2]!=0) 
+            {
+                y2++;
+            }
+            if(teclado.A && map[y2][x2-1]!=0) 
+            {
+                x2--;
+            }
+            if(teclado.D && map[y2][x2+1]!=0) 
+            {
+                x2++;
+            }
+
+            if(x2>=0 && x2<M && y2>=0 && y2<N && map[y2][x2]==1)
+            {
+                x1=x2; y1=y2;
+            }
+
+        }
+        else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+        {
+            a=false;
+        }
+        al_clear_to_color(al_map_rgb(255,255,255));
+        for(i=0;i<N;i++)
+        {
+            for(j=0;j<M;j++)
+            {
+                if(map[i][j]==0 && pos[i][j]=='a')
+                {
+                    al_draw_filled_rectangle(j*enty,i*enty,(j+1)*enty,(i+1)*enty,al_map_rgb(0,0,255));
+                }
+                else if(map[i][j]==1 && pos[i][j]=='c')
+                {
+                    al_draw_filled_rectangle(j*enty,i*enty,(j+1)*enty,(i+1)*enty,al_map_rgb(0,0,0));
+                }
+                else if(map[i][j]==1 && pos[i][j]=='o')
+                {
+                    al_draw_filled_rectangle(j*enty,i*enty,(j+1)*enty,(i+1)*enty,al_map_rgb(200,200,255));
+                }
+                else if(map[i][j]==1 && pos[i][j]=='p')
+                {
+                    al_draw_filled_rectangle(j*enty,i*enty,(j+1)*enty,(i+1)*enty,al_map_rgb(100,0,200));
+                }
+                else if(map[i][j]==0 && pos[i][j]=='b')
+                {
+                    al_draw_filled_rectangle(j*enty,i*enty,(j+1)*enty,(i+1)*enty,al_map_rgb(0,100,255));
+                }
+
+            }
+        }
+        al_draw_filled_rectangle(x1*enty,y1*enty,(x1+1)*enty,(y1+1)*enty,al_map_rgb(255,0,0));
         al_flip_display();
     }
 
